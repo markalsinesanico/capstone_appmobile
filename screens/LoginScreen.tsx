@@ -19,7 +19,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { RootStackParamList } from '../App'; // ensure this declares 'PersonalTabs' and 'Login'
+import { RootStackParamList } from '../App';
 
 const PINK = '#FFC1CC';
 const DARK = '#333';
@@ -30,7 +30,8 @@ export default function LoginScreen(): React.ReactElement {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleLogin = async (): Promise<void> => {
     try {
@@ -39,7 +40,11 @@ export default function LoginScreen(): React.ReactElement {
       const res = await API.post('/login', { email, password });
 
       // backend returns token in res.data.token (adjust if different)
-      const token = res.data?.token ?? res.data?.access_token ?? res.data?.data?.token;
+      const token =
+        res.data?.token ??
+        res.data?.access_token ??
+        res.data?.data?.token;
+
       if (!token) throw new Error('No token returned from server');
 
       await AsyncStorage.setItem('token', token);
@@ -51,10 +56,10 @@ export default function LoginScreen(): React.ReactElement {
 
       Alert.alert('Success', res.data?.message ?? 'Logged in');
 
-      // Reset navigation to authenticated stack (replace with your route name)
+      // ✅ Navigate to Screen after login
       navigation.reset({
         index: 0,
-        routes: [{ name: 'PersonalTabs' }], // change if your nav differs
+        routes: [{ name: 'Home' }],
       });
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -63,7 +68,10 @@ export default function LoginScreen(): React.ReactElement {
           err.response?.data ??
           err.message ??
           'Login failed';
-        Alert.alert('Error', typeof msg === 'string' ? msg : JSON.stringify(msg));
+        Alert.alert(
+          'Error',
+          typeof msg === 'string' ? msg : JSON.stringify(msg)
+        );
       } else if (err instanceof Error) {
         Alert.alert('Error', err.message);
       } else {
@@ -75,12 +83,23 @@ export default function LoginScreen(): React.ReactElement {
   };
 
   const navigateToRegister = () => {
-    navigation.navigate('Register');
+    // make sure 'Register' exists in your stack before using
+    navigation.navigate('Register' as keyof RootStackParamList);
   };
 
   return (
-    <ImageBackground source={require('../assets/pic4.jpg')} style={styles.container}>
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+    <ImageBackground
+      source={require('../assets/pic4.jpg')}
+      style={styles.container}
+    >
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: '100%',
+        }}
+      >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
@@ -88,7 +107,10 @@ export default function LoginScreen(): React.ReactElement {
         >
           <View style={styles.formContainer}>
             <View style={styles.avatarPlaceholder}>
-              <Image source={require('../assets/purrfectpaw_logo.png')} style={styles.avatarImage} />
+              <Image
+                source={require('../assets/purrfectpaw_logo.png')}
+                style={styles.avatarImage}
+              />
             </View>
             <Text style={styles.title}>Welcome back!</Text>
 
@@ -109,15 +131,30 @@ export default function LoginScreen(): React.ReactElement {
                 value={password}
                 onChangeText={setPassword}
               />
-              <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword((v) => !v)}>
-                <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={24} color="#666" />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowPassword((v) => !v)}
+              >
+                <Ionicons
+                  name={showPassword ? 'eye' : 'eye-off'}
+                  size={24}
+                  color="#666"
+                />
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={styles.primaryButton} onPress={handleLogin} disabled={loading}>
-              {loading ? <ActivityIndicator color="#000" /> : <Text style={styles.primaryButtonText}>Log in</Text>}
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#000" />
+              ) : (
+                <Text style={styles.primaryButtonText}>Log in</Text>
+              )}
             </TouchableOpacity>
-            
+
             {/* Register Link */}
             <View style={styles.registerLinkContainer}>
               <Text style={styles.registerText}>Don't have an account? </Text>
@@ -165,9 +202,26 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontSize: 16,
   },
-  inputWrapper: { width: '100%', position: 'relative', marginBottom: 16 },
-  eyeIcon: { position: 'absolute', right: 20, top: '50%', transform: [{ translateY: -12 }], zIndex: 1 },
-  primaryButton: { backgroundColor: PINK, width: '100%', borderRadius: 30, paddingVertical: 14, alignItems: 'center', marginBottom: 12 },
+  inputWrapper: {
+    width: '100%',
+    position: 'relative',
+    marginBottom: 16,
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 20,
+    top: '50%',
+    transform: [{ translateY: -12 }],
+    zIndex: 1,
+  },
+  primaryButton: {
+    backgroundColor: PINK,
+    width: '100%',
+    borderRadius: 30,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   primaryButtonText: { color: '#000', fontSize: 16, fontWeight: 'bold' },
   registerLinkContainer: {
     flexDirection: 'row',
@@ -180,7 +234,20 @@ const styles = StyleSheet.create({
     color: PINK,
     fontWeight: 'bold',
   },
-  loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.2)', justifyContent: 'center', alignItems: 'center' },
-  avatarPlaceholder: { width: 100, height: 100, borderRadius: 50, backgroundColor: PINK, justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: PINK,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   avatarImage: { width: 85, height: 85, borderRadius: 30 },
 });
