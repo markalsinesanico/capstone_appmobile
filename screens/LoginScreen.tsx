@@ -8,10 +8,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  ImageBackground,
-  Image,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { API } from '../src/api';
 import { useNavigation } from '@react-navigation/native';
@@ -20,9 +19,10 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { RootStackParamList } from '../App';
+import { LinearGradient } from 'expo-linear-gradient';
 
-const PINK = '#FFC1CC';
-const DARK = '#333';
+const YELLOW = '#FFD93D';
+const GREEN = '#4CAF50';
 
 export default function LoginScreen(): React.ReactElement {
   const [email, setEmail] = useState<string>('');
@@ -39,7 +39,6 @@ export default function LoginScreen(): React.ReactElement {
 
       const res = await API.post('/login', { email, password });
 
-      // backend returns token in res.data.token (adjust if different)
       const token =
         res.data?.token ??
         res.data?.access_token ??
@@ -49,14 +48,12 @@ export default function LoginScreen(): React.ReactElement {
 
       await AsyncStorage.setItem('token', token);
 
-      // optional immediate set for this instance (interceptor will handle future requests)
       API.defaults.headers = API.defaults.headers || {};
       API.defaults.headers.common = API.defaults.headers.common || {};
       API.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
       Alert.alert('Success', res.data?.message ?? 'Logged in');
 
-      // ✅ Navigate to Screen after login
       navigation.reset({
         index: 0,
         routes: [{ name: 'Home' }],
@@ -82,124 +79,116 @@ export default function LoginScreen(): React.ReactElement {
     }
   };
 
-  const navigateToRegister = () => {
-    // make sure 'Register' exists in your stack before using
-    navigation.navigate('Register' as keyof RootStackParamList);
-  };
-
   return (
-    <ImageBackground
-      source={require('../assets/pic4.jpg')}
-      style={styles.container}
-    >
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          width: '100%',
-        }}
+    <LinearGradient colors={[YELLOW, GREEN]} style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        style={styles.inner}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-          style={{ width: '100%' }}
-        >
-          <View style={styles.formContainer}>
-            <View style={styles.avatarPlaceholder}>
-              <Image
-                source={require('../assets/purrfectpaw_logo.png')}
-                style={styles.avatarImage}
-              />
-            </View>
-            <Text style={styles.title}>Welcome back!</Text>
+        <View style={styles.header}>
+          {/* 👇 Replace icon row with logo image */}
+          <Image
+            source={require('../assets/images/logo.png')} // change path to your logo
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.title}>Welcome Students!</Text>
+    
+        </View>
 
+        <View style={styles.formContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
+          />
+
+          <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
-              placeholder="Email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
+              placeholder="Password"
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
             />
-
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={styles.input}
-                placeholder="Password"
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={setPassword}
-              />
-              <TouchableOpacity
-                style={styles.eyeIcon}
-                onPress={() => setShowPassword((v) => !v)}
-              >
-                <Ionicons
-                  name={showPassword ? 'eye' : 'eye-off'}
-                  size={24}
-                  color="#666"
-                />
-              </TouchableOpacity>
-            </View>
-
             <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={handleLogin}
-              disabled={loading}
+              style={styles.eyeIcon}
+              onPress={() => setShowPassword((v) => !v)}
             >
-              {loading ? (
-                <ActivityIndicator color="#000" />
-              ) : (
-                <Text style={styles.primaryButtonText}>Log in</Text>
-              )}
+              <Ionicons
+                name={showPassword ? 'eye' : 'eye-off'}
+                size={24}
+                color={GREEN}
+              />
             </TouchableOpacity>
-
-            {/* Register Link */}
-            <View style={styles.registerLinkContainer}>
-              <Text style={styles.registerText}>Don't have an account? </Text>
-              <TouchableOpacity onPress={navigateToRegister}>
-                <Text style={styles.registerLink}>Register here</Text>
-              </TouchableOpacity>
-            </View>
           </View>
-        </KeyboardAvoidingView>
-      </View>
 
-      {loading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color={PINK} />
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.primaryButtonText}>Log in</Text>
+            )}
+          </TouchableOpacity>
         </View>
-      )}
-    </ImageBackground>
+      </KeyboardAvoidingView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: PINK,
+  },
+  inner: {
+    flex: 1,
     justifyContent: 'center',
+    paddingHorizontal: 30,
+  },
+  header: {
     alignItems: 'center',
-    padding: 20,
+    marginBottom: 40,
+  },
+  logo: {
+    width: 120,
+    height: 120,
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginTop: 10,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#fff',
+    marginTop: 5,
   },
   formContainer: {
-    width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.8)',
+    backgroundColor: 'rgba(255,255,255,0.95)',
     borderRadius: 20,
-    padding: 30,
-    alignItems: 'center',
+    padding: 25,
     elevation: 5,
   },
-  title: { fontSize: 28, fontWeight: 'bold', color: DARK, marginBottom: 20 },
   input: {
     width: '100%',
     backgroundColor: '#fff',
-    borderRadius: 30,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: GREEN,
     paddingHorizontal: 20,
     paddingRight: 50,
     paddingVertical: 14,
-    marginBottom: 10,
+    marginBottom: 12,
     fontSize: 16,
   },
   inputWrapper: {
@@ -215,39 +204,15 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   primaryButton: {
-    backgroundColor: PINK,
-    width: '100%',
-    borderRadius: 30,
+    backgroundColor: GREEN,
+    borderRadius: 25,
     paddingVertical: 14,
     alignItems: 'center',
-    marginBottom: 12,
-  },
-  primaryButtonText: { color: '#000', fontSize: 16, fontWeight: 'bold' },
-  registerLinkContainer: {
-    flexDirection: 'row',
     marginTop: 10,
   },
-  registerText: {
-    color: DARK,
-  },
-  registerLink: {
-    color: PINK,
+  primaryButtonText: {
+    color: '#fff',
+    fontSize: 16,
     fontWeight: 'bold',
   },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarPlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: PINK,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  avatarImage: { width: 85, height: 85, borderRadius: 30 },
 });
