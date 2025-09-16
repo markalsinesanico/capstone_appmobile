@@ -12,7 +12,7 @@ import {
   Platform,
   Image,
 } from 'react-native';
-import { API } from '../src/api';
+import API from '../src/api';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
