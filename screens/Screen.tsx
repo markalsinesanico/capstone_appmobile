@@ -105,7 +105,8 @@ const COURSE_OPTIONS: Record<string, { label: string; value: string }[]> = {
 export default function Screen(): JSX.Element {
   const [search, setSearch] = useState<string>("");
   const [isModalVisible, setModalVisible] = useState<boolean>(false);
-  const [selectedItem, setSelectedItem] = useState<string>("");
+const [selectedItemName, setSelectedItemName] = useState<string>("");
+const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
   const [form, setForm] = useState<FormState>({
     fullName: "",
     idNumber: "",
@@ -157,11 +158,11 @@ const fetchItems = async () => {
     fetchItems();
   }, []);
 
-  const openRequest = (name: string) => {
-    setSelectedItem(name);
-    setModalVisible(true);
-  };
-
+ const openRequest = (item: Item) => {
+  setSelectedItemName(item.name);
+  setSelectedItemId(item.id);
+  setModalVisible(true);
+};
   const handleFormChange = <K extends keyof FormState>(
     key: K,
     val: FormState[K]
@@ -185,19 +186,72 @@ const fetchItems = async () => {
       }
     };
 
-  const submit = () => {
-    alert("Request submitted!");
+  const submit = async () => {
+    try {
+      if (!selectedItemId) {
+        Alert.alert('Error', 'Please select an item');
+        return;
+      }
+
+      // Format time to HH:mm format
+      const formatTime = (date: Date) => {
+        return date.toLocaleTimeString('en-US', {
+          hour12: false,
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      };
+
+      const requestData = {
+        name: form.fullName,
+        borrower_id: form.idNumber,
+        year: form.year,
+        department: form.dept,
+        course: form.course,
+        date: form.date?.toISOString().split('T')[0],
+        time_in: form.timeIn ? formatTime(form.timeIn) : null,
+        time_out: form.timeOut ? formatTime(form.timeOut) : null,
+        item_id: selectedItemId
+      };
+
+      // Log the request data for debugging
+      console.log('Submitting request:', requestData);
+
+      const response = await API.post('/requests', requestData);
+
+      console.log('Response:', response.data);
+
+      Alert.alert('Success', 'Request submitted successfully!');
+      setModalVisible(false);
+      resetForm();
+
+    } catch (error: any) {
+      console.error('Submit error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+
+      const errorMessage = error.response?.data?.message 
+        || error.response?.data?.error 
+        || 'Failed to submit request';
+        
+      Alert.alert('Error', errorMessage);
+    }
+  };
+
+  const resetForm = () => {
     setForm({
-      fullName: "",
-      idNumber: "",
-      year: "",
-      dept: "",
-      course: "",
+      fullName: '',
+      idNumber: '',
+      year: '',
+      dept: '',
+      course: '',
       date: null,
       timeIn: null,
-      timeOut: null,
+      timeOut: null
     });
-    setModalVisible(false);
+    setSelectedItemId(null);
   };
 
   if (loading) {
@@ -256,12 +310,12 @@ const fetchItems = async () => {
                 </Text>
               ) : null}
             </View>
-            <TouchableOpacity
-              style={styles.itemButton}
-              onPress={() => openRequest(item.name)}
-            >
-              <Text style={styles.itemButtonText}>Request ITEM</Text>
-            </TouchableOpacity>
+           <TouchableOpacity
+  style={styles.itemButton}
+  onPress={() => openRequest(item)}
+>
+  <Text style={styles.itemButtonText}>Request ITEM</Text>
+</TouchableOpacity>
           </View>
         )}
       />
@@ -281,7 +335,7 @@ const fetchItems = async () => {
             <FontAwesome name="times" size={20} color="#333" />
           </TouchableOpacity>
           <Text style={styles.modalTitle}>Borrowing Request Form</Text>
-          <Text style={styles.selectedItem}>{selectedItem}</Text>
+          <Text style={styles.selectedItem}>{selectedItemName}</Text>
           <ScrollView>
             <TextInput
               value={form.fullName}
