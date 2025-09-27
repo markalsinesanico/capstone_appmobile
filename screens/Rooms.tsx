@@ -184,24 +184,37 @@ export default function Rooms(): JSX.Element {
     setShowPicker({ type: "", visible: false });
   };
 
-  const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    if (Platform.OS === "android") {
-      setShowPicker({ type: "", visible: false });
+ const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+  if (Platform.OS === "android") {
+    setShowPicker({ type: "", visible: false });
+  }
+  if (selectedDate) {
+    const day = selectedDate.getDay(); // 0 = Sunday, 6 = Saturday
+    if (day === 0 || day === 6) {
+      setDate(selectedDate);
+    } else {
+      Alert.alert(
+        "Reservation Notice",
+        "Room reservations are only available on Saturdays and Sundays.\n\nFor weekday bookings, please visit the office directly.",
+        [{ text: "OK", style: "default" }]
+      );
+      setDate(null); // reset date if invalid
     }
-    if (selectedDate) setDate(selectedDate);
-  };
+  }
+};
 
-  const handleTimeChange =
-    (pickerType: "timeIn" | "timeOut") =>
-    (event: DateTimePickerEvent, selectedDate?: Date) => {
-      if (Platform.OS === "android") {
-        setShowPicker({ type: "", visible: false });
-      }
-      if (selectedDate) {
-        if (pickerType === "timeIn") setTimeIn(selectedDate);
-        else setTimeOut(selectedDate);
-      }
-    };
+const handleTimeChange = (type: "timeIn" | "timeOut") => (event: DateTimePickerEvent, selectedTime?: Date) => {
+  if (Platform.OS === "android") {
+    setShowPicker({ type: "", visible: false });
+  }
+  if (selectedTime) {
+    if (type === "timeIn") {
+      setTimeIn(selectedTime);
+    } else if (type === "timeOut") {
+      setTimeOut(selectedTime);
+    }
+  }
+};
 
   const handleSubmit = async () => {
     try {

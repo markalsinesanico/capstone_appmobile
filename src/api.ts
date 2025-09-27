@@ -2,11 +2,12 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API = axios.create({
-  baseURL: 'http://10.132.6.164:8000/api',
+  baseURL: 'http://10.108.149.164:8000/api',
   timeout: 10000,
   headers: {
     'Accept': 'application/json',
-    'Content-Type': 'application/json'
+    // Do not set a global Content-Type header. Let the client (browser/axios/FormData)
+    // set Content-Type, especially for multipart/form-data uploads which require a boundary.
   }
 });
 

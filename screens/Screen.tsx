@@ -302,7 +302,7 @@ const fetchItems = async () => {
             <View style={{ flex: 1 }}>
               <Text style={styles.itemName}>{item.name}</Text>
               <Text style={{ fontSize: 12, color: "green" }}>
-                Qty: {item.qty}
+                 available
               </Text>
               {item.description ? (
                 <Text style={{ fontSize: 11, color: "#555" }}>
@@ -419,7 +419,9 @@ const fetchItems = async () => {
               onPress={() => setShowTimePicker({ field: "timeIn", visible: true })}
             >
               <Text style={{ color: form.timeIn ? "#000" : "#888" }}>
-                {form.timeIn ? form.timeIn.toLocaleTimeString() : "Select Time In"}
+                {form.timeIn
+  ? form.timeIn.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+  : "Select Time In"}
               </Text>
             </TouchableOpacity>
 
@@ -431,8 +433,8 @@ const fetchItems = async () => {
             >
               <Text style={{ color: form.timeOut ? "#000" : "#888" }}>
                 {form.timeOut
-                  ? form.timeOut.toLocaleTimeString()
-                  : "Select Time Out"}
+  ? form.timeOut.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+  : "Select Time Out"}
               </Text>
             </TouchableOpacity>
 

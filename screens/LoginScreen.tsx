@@ -47,6 +47,14 @@ export default function LoginScreen(): React.ReactElement {
       if (!token) throw new Error('No token returned from server');
 
       await AsyncStorage.setItem('token', token);
+      // persist email for profile display
+      if (email) {
+        await AsyncStorage.setItem('email', email);
+      }
+      // persist full user object returned by API for later identification
+      if (res.data?.user) {
+        await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+      }
 
       API.defaults.headers = API.defaults.headers || {};
       API.defaults.headers.common = API.defaults.headers.common || {};
